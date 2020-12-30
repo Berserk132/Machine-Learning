@@ -91,7 +91,7 @@ def gradient_decent(iterations, learning_rate, theta):
 
 
 # learning rate of 0.01
-iterations = 2000
+iterations = 600
 learning_rate = 0.01
 theta = [0, 0]
 errors = gradient_decent(iterations, learning_rate, theta)

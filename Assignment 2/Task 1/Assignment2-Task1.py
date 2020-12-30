@@ -12,12 +12,12 @@ import math
 
 # In[82]:
 
-
 attributes =  ['vote_result', 'vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote6', 'vote7', 'vote8', 'vote9', 'vote10', 
                'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
 vote_attributes =  ['vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote6', 'vote7', 'vote8', 'vote9', 'vote10', 
                'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
-data = pd.read_csv('D:\PythonProjects\Machine-Learning\Assignment 2\Task 1\house-votes-84.txt', header=None)
+#data = pd.read_csv('D:\PythonProjects\Machine-Learning\Assignment 2\Task 1\house-votes-84.txt', header=None)
+data = pd.read_csv('house-votes-84.txt', header=None)
 data.columns = attributes
 data.head()
 
@@ -58,12 +58,13 @@ data.head()
 
 
 class Node():
-    def __init__(self, attribute):
+    def __init__(self, attribute = None, p = None):
         self.attr = attribute
+        self.parent = p
         self.left = None
         self.right = None
-        #self.leaf = False
-        #self.predict = None
+        self.leaf = False
+        self.predict = None
 
 
 # In[86]:
@@ -104,9 +105,12 @@ def calculate_entropy_average(df, df_subs, predict_attr):
 # In[89]:
 
 
-def getNextAttribute(df):
+def getNextAttribute(df, bannedAttr):
     info_gain_dic = dict()
     for attr in vote_attributes:
+        
+        if (attr in bannedAttr):
+            continue
 
         entropy = calculate_entropy(df, 'vote_result')
         y_data = df[df[attr] == 'y']
@@ -122,11 +126,54 @@ def getNextAttribute(df):
     maxValueIndex = values.index(maxValue)
     maxKey = keys[maxValueIndex]
 
-    return maxValue, maxKey
+    return maxKey
 
 
 # In[ ]:
-print(getNextAttribute(data))
+tree = Node()
+def build_tree(df, predict_attr):
+    # Dataframe and number of republican/democrat examples in the data
+    r_df = df[df[predict_attr] == 'republican']
+    d_df = df[df[predict_attr] == 'democrat']
+    #print(r_df.shape[0])
+    #print(d_df.shape[0])
+    # Get number of rows
+    r = float(r_df.shape[0])
+    d = float(d_df.shape[0])
+    if r == 0 or d == 0:
+
+        leaf = Node(None)
+        leaf.leaf = True
+
+        if r == 0:
+            leaf.predict = 'democrat'
+        
+        if d == 0:
+            leaf.predict = 'republican'
+
+        return leaf
+    else:
+
+        
+        
+        bestAttr = getNextAttribute(df, bannedAttr)
+
+        tree = Node(attribute=bestAttr)
+        
+        y_data = df[df[bestAttr] == 'y']
+        n_data = df[df[bestAttr] == 'n']
+
+        tree.left = build_tree(y_data, predict_attr)
+        tree.right = build_tree(n_data, predict_attr)
+
+        return tree
 
 
 
+# In[ ]:
+
+tree = build_tree(data[0:110], 'vote_result')
+
+# %%
+
+# %%
