@@ -17,7 +17,7 @@ attributes =  ['vote_result', 'vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote
                'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
 vote_attributes =  ['vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote6', 'vote7', 'vote8', 'vote9', 'vote10', 
                'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
-data = pd.read_csv('house-votes-84.txt', header=None)
+data = pd.read_csv('D:\PythonProjects\Machine-Learning\Assignment 2\Task 1\house-votes-84.txt', header=None)
 data.columns = attributes
 data.head()
 
@@ -104,21 +104,29 @@ def calculate_entropy_average(df, df_subs, predict_attr):
 # In[89]:
 
 
-for attr in vote_attributes:
-    print("--------" , attr , "---------")
-    entropy = calculate_entropy(data, 'vote_result')
-    y_data = data[data[attr] == 'y']
-    n_data = data[data[attr] == 'n']
-    subs = [y_data, n_data]
-    entropy_childrens = calculate_entropy_average(data, subs, 'vote_result')
-    info_gain = entropy - entropy_childrens
-    print(entropy)
-    print(entropy_childrens)
-    print(info_gain)
+def getNextAttribute(df):
+    info_gain_dic = dict()
+    for attr in vote_attributes:
+
+        entropy = calculate_entropy(df, 'vote_result')
+        y_data = df[df[attr] == 'y']
+        n_data = df[df[attr] == 'n']
+        subs = [y_data, n_data]
+        entropy_childrens = calculate_entropy_average(df, subs, 'vote_result')
+        info_gain = entropy - entropy_childrens
+        info_gain_dic[attr] = info_gain 
+
+    values = list(info_gain_dic.values())
+    keys  = list(info_gain_dic.keys())
+    maxValue = max(values)
+    maxValueIndex = values.index(maxValue)
+    maxKey = keys[maxValueIndex]
+
+    return maxValue, maxKey
 
 
 # In[ ]:
-
+print(getNextAttribute(data))
 
 
 
