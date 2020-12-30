@@ -10,17 +10,19 @@ import pandas as pd
 import math
 
 
-# In[38]:
+# In[82]:
 
 
 attributes =  ['vote_result', 'vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote6', 'vote7', 'vote8', 'vote9', 'vote10', 
+               'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
+vote_attributes =  ['vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote6', 'vote7', 'vote8', 'vote9', 'vote10', 
                'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
 data = pd.read_csv('house-votes-84.txt', header=None)
 data.columns = attributes
 data.head()
 
 
-# In[39]:
+# In[83]:
 
 
 for index, row in data.iterrows():
@@ -46,13 +48,13 @@ for index, row in data.iterrows():
     data.loc[index] = rowData
 
 
-# In[40]:
+# In[84]:
 
 
 data.head()
 
 
-# In[41]:
+# In[85]:
 
 
 class Node():
@@ -60,11 +62,11 @@ class Node():
         self.attr = attribute
         self.left = None
         self.right = None
-        self.leaf = False
-        self.predict = None
+        #self.leaf = False
+        #self.predict = None
 
 
-# In[51]:
+# In[86]:
 
 
 def calculate_entropy(df, predict_attr):
@@ -86,11 +88,33 @@ def calculate_entropy(df, predict_attr):
     return entropy
 
 
-# In[54]:
+# In[87]:
 
 
-entropy = calculate_entropy(data, 'vote_result')
-print(entropy)
+def calculate_entropy_average(df, df_subs, predict_attr):
+    # number of test data
+    num_data = df.shape[0]
+    average = float(0)
+    for df_sub in df_subs:
+        if df_sub.shape[0] > 1:
+            average += float(df_sub.shape[0]/num_data)*calculate_entropy(df_sub, predict_attr)
+    return average
+
+
+# In[89]:
+
+
+for attr in vote_attributes:
+    print("--------" , attr , "---------")
+    entropy = calculate_entropy(data, 'vote_result')
+    y_data = data[data[attr] == 'y']
+    n_data = data[data[attr] == 'n']
+    subs = [y_data, n_data]
+    entropy_childrens = calculate_entropy_average(data, subs, 'vote_result')
+    info_gain = entropy - entropy_childrens
+    print(entropy)
+    print(entropy_childrens)
+    print(info_gain)
 
 
 # In[ ]:
