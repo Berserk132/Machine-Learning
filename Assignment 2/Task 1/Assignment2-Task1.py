@@ -58,10 +58,10 @@ data.head()
 
 
 class Node():
-    def __init__(self, attribute = None, p = None):
+    def __init__(self, attribute = None, bannedAttr = []):
         self.attr = attribute
-        self.parent = p
         self.left = None
+        self.bannedAttr = bannedAttr
         self.right = None
         self.leaf = False
         self.predict = None
@@ -131,7 +131,7 @@ def getNextAttribute(df, bannedAttr):
 
 # In[ ]:
 tree = Node()
-def build_tree(df, predict_attr):
+def build_tree(df, predict_attr, parent = []):
     # Dataframe and number of republican/democrat examples in the data
     r_df = df[df[predict_attr] == 'republican']
     d_df = df[df[predict_attr] == 'democrat']
@@ -153,18 +153,18 @@ def build_tree(df, predict_attr):
 
         return leaf
     else:
-
         
-        
-        bestAttr = getNextAttribute(df, bannedAttr)
+        bestAttr = getNextAttribute(df, parent.bannedAttr)
+        bannedAttrNew = parent.bannedAttr
+        bannedAttrNew.append(bestAttr)
 
-        tree = Node(attribute=bestAttr)
+        tree = Node(bestAttr, bannedAttrNew)
         
         y_data = df[df[bestAttr] == 'y']
         n_data = df[df[bestAttr] == 'n']
 
-        tree.left = build_tree(y_data, predict_attr)
-        tree.right = build_tree(n_data, predict_attr)
+        tree.left = build_tree(y_data, predict_attr, tree)
+        tree.right = build_tree(n_data, predict_attr, tree)
 
         return tree
 
@@ -172,8 +172,26 @@ def build_tree(df, predict_attr):
 
 # In[ ]:
 
-tree = build_tree(data[0:110], 'vote_result')
+tree = build_tree(data[0:110], 'vote_result', tree)
 
 # %%
+def predict(node, row_df):
+
+	if node.leaf:
+		return node.predict
+
+	if row_df[node.attr] == 'y':
+		return predict(node.left, row_df)
+
+	elif row_df[node.attr] == 'n':
+		return predict(node.right, row_df)
 
 # %%
+print( "------------" , 'start prediction', "---------------")
+counter = 0
+for index,row in data.iterrows():
+	prediction = predict(tree, row)
+	if prediction == row['vote_result']:
+			counter += 1
+
+print(counter)
