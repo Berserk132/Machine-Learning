@@ -58,9 +58,10 @@ data.head()
 
 
 class Node():
-    def __init__(self, attribute = None):
+    def __init__(self, attribute = None, bannedAttr = []):
         self.attr = attribute
         self.left = None
+        self.bannedAttr = bannedAttr
         self.right = None
         self.leaf = False
         self.predict = None
@@ -104,9 +105,12 @@ def calculate_entropy_average(df, df_subs, predict_attr):
 # In[89]:
 
 
-def getNextAttribute(df):
+def getNextAttribute(df, bannedAttr):
     info_gain_dic = dict()
     for attr in vote_attributes:
+        
+        if (attr in bannedAttr):
+            continue
 
         entropy = calculate_entropy(df, 'vote_result')
         y_data = df[df[attr] == 'y']
@@ -121,14 +125,13 @@ def getNextAttribute(df):
     maxValue = max(values)
     maxValueIndex = values.index(maxValue)
     maxKey = keys[maxValueIndex]
-    print(maxValue , " " , maxValueIndex, " ", maxKey)
 
     return maxKey
 
 
 # In[ ]:
 tree = Node()
-def build_tree(df, predict_attr):
+def build_tree(df, predict_attr, parent = []):
     # Dataframe and number of republican/democrat examples in the data
     r_df = df[df[predict_attr] == 'republican']
     d_df = df[df[predict_attr] == 'democrat']
@@ -148,29 +151,20 @@ def build_tree(df, predict_attr):
         if d == 0:
             leaf.predict = 'republican'
 
-        
-
         return leaf
-
-    elif r == d:
-
-        leaf = Node(None)
-        leaf.leaf = True
-        leaf.predict = 'democrat'
-
-        return leaf
-        
     else:
         
-        bestAttr = getNextAttribute(df)
+        bestAttr = getNextAttribute(df, parent.bannedAttr)
+        bannedAttrNew = parent.bannedAttr
+        bannedAttrNew.append(bestAttr)
 
-        tree = Node(bestAttr)
+        tree = Node(bestAttr, bannedAttrNew)
         
         y_data = df[df[bestAttr] == 'y']
         n_data = df[df[bestAttr] == 'n']
 
-        tree.left = build_tree(y_data, predict_attr)
-        tree.right = build_tree(n_data, predict_attr)
+        tree.left = build_tree(y_data, predict_attr, tree)
+        tree.right = build_tree(n_data, predict_attr, tree)
 
         return tree
 
@@ -178,7 +172,7 @@ def build_tree(df, predict_attr):
 
 # In[ ]:
 
-tree = build_tree(data[310:435], 'vote_result')
+tree = build_tree(data[0:110], 'vote_result', tree)
 
 # %%
 def predict(node, row_df):
