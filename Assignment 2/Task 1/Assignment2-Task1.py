@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import math
+import random
 
 
 # In[82]:
@@ -17,9 +18,13 @@ attributes =  ['vote_result', 'vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote
 vote_attributes =  ['vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote6', 'vote7', 'vote8', 'vote9', 'vote10', 
                'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
 #data = pd.read_csv('D:\PythonProjects\Machine-Learning\Assignment 2\Task 1\house-votes-84.txt', header=None)
-data = pd.read_csv('house-votes-84.txt', header=None)
+data = pd.read_csv('D:\PythonProjects\Machine-Learning\Assignment 2\Task 1\house-votes-84.txt', header=None)
 data.columns = attributes
+
+
 data.head()
+
+
 
 
 # In[83]:
@@ -55,6 +60,19 @@ data.head()
 
 
 # In[85]:
+
+
+def getTestandTrainingData(data, percent):
+    size = ((data.shape[0]*percent) // 100)
+    startIndex = random.randrange(0, data.shape[0]-size)
+    endIndex = startIndex + size
+
+    trainingData = data[startIndex: endIndex]
+    testingData = pd.concat([data[:startIndex], data[endIndex:]], axis=0)
+    return trainingData, testingData
+
+
+
 
 
 class Node():
@@ -121,7 +139,7 @@ def getNextAttribute(df):
     maxValue = max(values)
     maxValueIndex = values.index(maxValue)
     maxKey = keys[maxValueIndex]
-    print(maxValue , " " , maxValueIndex, " ", maxKey)
+    #print(maxValue , " " , maxValueIndex, " ", maxKey)
 
     return maxKey
 
@@ -176,9 +194,6 @@ def build_tree(df, predict_attr):
 
 
 
-# In[ ]:
-
-tree = build_tree(data[310:435], 'vote_result')
 
 # %%
 def predict(node, row_df):
@@ -195,9 +210,20 @@ def predict(node, row_df):
 # %%
 print( "------------" , 'start prediction', "---------------")
 counter = 0
-for index,row in data.iterrows():
-	prediction = predict(tree, row)
-	if prediction == row['vote_result']:
-			counter += 1
+
+for i in range(0,5):
+    
+    trainData, testData = getTestandTrainingData(data, 25)
+    
+    tree = build_tree(trainData, 'vote_result')
+    
+    for index,row in testData.iterrows():
+        prediction = predict(tree, row)
+        if prediction == row['vote_result']:
+                counter += 1
+    
+    print( "------------" , 'Tree Number ',i+1,"---------------")
+    print((counter / testData.shape[0]) * 100)
+    counter = 0
 
 print(counter)
