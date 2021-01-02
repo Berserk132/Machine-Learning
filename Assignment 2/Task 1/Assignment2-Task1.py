@@ -18,7 +18,7 @@ attributes =  ['vote_result', 'vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote
 vote_attributes =  ['vote1', 'vote2', 'vote3', 'vote4', 'vote5', 'vote6', 'vote7', 'vote8', 'vote9', 'vote10', 
                'vote11', 'vote12', 'vote13', 'vote14', 'vote15', 'vote16']
 #data = pd.read_csv('D:\PythonProjects\Machine-Learning\Assignment 2\Task 1\house-votes-84.txt', header=None)
-data = pd.read_csv('D:\PythonProjects\Machine-Learning\Assignment 2\Task 1\house-votes-84.txt', header=None)
+data = pd.read_csv('house-votes-84.txt', header=None)
 data.columns = attributes
 
 
@@ -83,6 +83,15 @@ class Node():
         self.leaf = False
         self.predict = None
 
+    def getSize(self):
+        if self.left and self.right:
+            return 1 + self.left.getSize() + self.right.getSize()
+        elif self.left:
+            return 1 + self.left.getSize()
+        elif self.right:
+            return 1 + self.right
+        else:
+            return 1
 
 # In[86]:
 
@@ -145,7 +154,6 @@ def getNextAttribute(df):
 
 
 # In[ ]:
-tree = Node()
 def build_tree(df, predict_attr):
     # Dataframe and number of republican/democrat examples in the data
     r_df = df[df[predict_attr] == 'republican']
@@ -210,9 +218,8 @@ def predict(node, row_df):
 # %%
 print( "------------" , 'start prediction', "---------------")
 counter = 0
-
 for i in range(0,5):
-    
+    tree = Node()
     trainData, testData = getTestandTrainingData(data, 25)
     
     tree = build_tree(trainData, 'vote_result')
@@ -222,8 +229,55 @@ for i in range(0,5):
         if prediction == row['vote_result']:
                 counter += 1
     
+    treeSize = tree.getSize()
+    accuracy = (counter / testData.shape[0]) * 100
     print( "------------" , 'Tree Number ',i+1,"---------------")
-    print((counter / testData.shape[0]) * 100)
+    print(accuracy)
+    
+    print("The Size of the tree = ", treeSize)
     counter = 0
 
-print(counter)
+
+
+#%%
+
+# try different sizes of training dataset
+counter = 0
+trainingSetSize = 30
+SizeList = []
+accuracyList = []
+for j in range (0,5):
+    print( "------------" , '\n\nTraining set size of  ',trainingSetSize, '%',"---------------")
+    for i in range(0,5):
+        tree = Node()
+        trainData, testData = getTestandTrainingData(data, trainingSetSize)
+        
+        tree = build_tree(trainData, 'vote_result')
+        
+        for index,row in testData.iterrows():
+            prediction = predict(tree, row)
+            if prediction == row['vote_result']:
+                    counter += 1
+        
+        treeSize = tree.getSize()
+        accuracy = (counter / testData.shape[0]) * 100
+        print( "------------" , 'Tree Number ',i+1,"---------------")
+        print(accuracy)
+        
+        print("The Size of the tree = ", treeSize)
+        counter = 0
+        SizeList.append(treeSize)
+        accuracyList.append(accuracy)
+        
+    print("\nMean of Accurecy = ", sum(accuracyList)/len(accuracyList))
+    print("Min of Accurecy = ", min(accuracyList))
+    print("Max of Accurecy = ", max(accuracyList))
+
+    print("\nMean of Tree Size = ", sum(SizeList)/len(SizeList))
+    print("Min of Tree Size = ",  min(SizeList))
+    print("Max of Tree Size = ", max(SizeList))
+
+    counter = 0
+    trainingSetSize += 10
+    SizeList.clear()
+    accuracyList.clear()
