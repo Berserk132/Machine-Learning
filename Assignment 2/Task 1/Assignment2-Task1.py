@@ -178,18 +178,17 @@ def build_tree(df, predict_attr):
 
         return leaf
 
-    elif r == d:
+    elif r == 1 and d == 1:
 
         leaf = Node(None)
         leaf.leaf = True
-        leaf.predict = 'democrat'
+        leaf.predict = 'None'
 
         return leaf
         
     else:
         
         bestAttr = getNextAttribute(df)
-
         tree = Node(bestAttr)
         
         y_data = df[df[bestAttr] == 'y']
@@ -208,8 +207,9 @@ def predict(node, row_df):
 
 	if node.leaf:
 		return node.predict
-
+    
 	if row_df[node.attr] == 'y':
+        
 		return predict(node.left, row_df)
 
 	elif row_df[node.attr] == 'n':
