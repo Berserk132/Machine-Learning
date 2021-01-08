@@ -47,7 +47,7 @@ x = np.concatenate((np.ones((m,1)),x), axis=1)
 n = x.shape[1]
 theta = np.random.random(size=(1,n))*0.1
 Y = Y.values.reshape(m,1)
-
+print(x)
 
 # In[91]:
 
