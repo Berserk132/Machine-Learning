@@ -30,38 +30,31 @@ data.head()
 # In[83]:
 
 
-for index, row in data.iterrows():
-    rowData = np.array(row)
-    y_count = 0
-    n_count = 0
-    mark_index = []
-    
-    for i in range(len(rowData)):
-        if rowData[i] == 'y':
-            y_count += 1
-        elif rowData[i] == 'n':
-            n_count += 1
-        elif rowData[i] == '?':
-            mark_index.append(i)
-    
-    for i in mark_index:
-        if y_count >= n_count:
-            rowData[i] = 'y'
-        else:
-            rowData[i] = 'n'
-            
-    data.loc[index] = rowData
+#for index, row in data.iterrows():
+#    rowData = np.array(row)
+#    y_count = 0
+#    n_count = 0
+#    mark_index = []
+#    
+#    for i in range(len(rowData)):
+#        if rowData[i] == 'y':
+#            y_count += 1
+#        elif rowData[i] == 'n':
+#            n_count += 1
+#        elif rowData[i] == '?':
+#            mark_index.append(i)
+#    
+#    for i in mark_index:
+#        if y_count >= n_count:
+#            rowData[i] = 'y'
+#        else:
+#            rowData[i] = 'n'
+#            
+#    data.loc[index] = rowData
 
-
-# In[84]:
-
-
-data.head()
 
 
 # In[85]:
-
-
 def getTestandTrainingData(data, percent):
     size = ((data.shape[0]*percent) // 100)
     startIndex = random.randrange(0, data.shape[0]-size)
@@ -80,16 +73,25 @@ class Node():
         self.attr = attribute
         self.left = None
         self.right = None
+        self.middle = None
         self.leaf = False
         self.predict = None
 
     def getSize(self):
-        if self.left and self.right:
+        if self.left and self.right and self.middle:
+            return 1 + self.left.getSize() + self.right.getSize() + self.middle.getSize()
+        elif self.left and self.right:
             return 1 + self.left.getSize() + self.right.getSize()
+        elif self.left and self.middle:
+            return 1 + self.left.getSize() + self.middle.getSize()
+        elif self.right and self.middle:
+            return 1 + self.right.getSize() + self.middle.getSize()
         elif self.left:
             return 1 + self.left.getSize()
         elif self.right:
-            return 1 + self.right
+            return 1 + self.right.getSize()
+        elif self.middle:
+            return 1 + self.middle.getSize()
         else:
             return 1
 
@@ -138,7 +140,8 @@ def getNextAttribute(df):
         entropy = calculate_entropy(df, 'vote_result')
         y_data = df[df[attr] == 'y']
         n_data = df[df[attr] == 'n']
-        subs = [y_data, n_data]
+        x_data = df[df[attr] == '?']
+        subs = [y_data, n_data, x_data]
         entropy_childrens = calculate_entropy_average(df, subs, 'vote_result')
         info_gain = entropy - entropy_childrens
         info_gain_dic[attr] = info_gain 
@@ -175,7 +178,6 @@ def build_tree(df, predict_attr):
             leaf.predict = 'republican'
 
         
-
         return leaf
 
     elif r == 1 and d == 1:
@@ -193,8 +195,10 @@ def build_tree(df, predict_attr):
         
         y_data = df[df[bestAttr] == 'y']
         n_data = df[df[bestAttr] == 'n']
+        x_data = df[df[bestAttr] == '?']
 
         tree.left = build_tree(y_data, predict_attr)
+        tree.middle = build_tree(x_data, predict_attr)
         tree.right = build_tree(n_data, predict_attr)
 
         return tree
@@ -205,15 +209,19 @@ def build_tree(df, predict_attr):
 # %%
 def predict(node, row_df):
 
-	if node.leaf:
-		return node.predict
+    if node.leaf:
+        return node.predict
     
-	if row_df[node.attr] == 'y':
-        
-		return predict(node.left, row_df)
+    else:
 
-	elif row_df[node.attr] == 'n':
-		return predict(node.right, row_df)
+        if row_df[node.attr] == 'y':
+            return predict(node.left, row_df)
+        
+        elif row_df[node.attr] == 'n':
+            return predict(node.right, row_df)
+        
+        elif row_df[node.attr] == '?':
+            return predict(node.middle, row_df)
 
 # %%
 print( "------------" , 'start prediction', "---------------")
@@ -236,48 +244,3 @@ for i in range(0,5):
     
     print("The Size of the tree = ", treeSize)
     counter = 0
-
-
-
-#%%
-
-# try different sizes of training dataset
-counter = 0
-trainingSetSize = 30
-SizeList = []
-accuracyList = []
-for j in range (0,5):
-    print( "------------" , '\n\nTraining set size of  ',trainingSetSize, '%',"---------------")
-    for i in range(0,5):
-        tree = Node()
-        trainData, testData = getTestandTrainingData(data, trainingSetSize)
-        
-        tree = build_tree(trainData, 'vote_result')
-        
-        for index,row in testData.iterrows():
-            prediction = predict(tree, row)
-            if prediction == row['vote_result']:
-                    counter += 1
-        
-        treeSize = tree.getSize()
-        accuracy = (counter / testData.shape[0]) * 100
-        print( "------------" , 'Tree Number ',i+1,"---------------")
-        print(accuracy)
-        
-        print("The Size of the tree = ", treeSize)
-        counter = 0
-        SizeList.append(treeSize)
-        accuracyList.append(accuracy)
-        
-    print("\nMean of Accurecy = ", sum(accuracyList)/len(accuracyList))
-    print("Min of Accurecy = ", min(accuracyList))
-    print("Max of Accurecy = ", max(accuracyList))
-
-    print("\nMean of Tree Size = ", sum(SizeList)/len(SizeList))
-    print("Min of Tree Size = ",  min(SizeList))
-    print("Max of Tree Size = ", max(SizeList))
-
-    counter = 0
-    trainingSetSize += 10
-    SizeList.clear()
-    accuracyList.clear()
