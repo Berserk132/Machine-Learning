@@ -63,12 +63,10 @@ data.head()
 
 
 def getTestandTrainingData(data, percent):
-    size = ((data.shape[0]*percent) // 100)
-    startIndex = random.randrange(0, data.shape[0]-size)
-    endIndex = startIndex + size
-
-    trainingData = data[startIndex: endIndex]
-    testingData = pd.concat([data[:startIndex], data[endIndex:]], axis=0)
+    dataCopy = data
+    testingData = dataCopy.sample(frac = percent/100)
+    dataCopy.drop(testingData.index)
+    trainingData = dataCopy.sample(frac = (100 - percent)/100)
     return trainingData, testingData
 
 

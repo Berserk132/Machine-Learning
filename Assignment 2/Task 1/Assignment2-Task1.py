@@ -56,13 +56,14 @@ data.head()
 
 # In[85]:
 def getTestandTrainingData(data, percent):
-    size = ((data.shape[0]*percent) // 100)
-    startIndex = random.randrange(0, data.shape[0]-size)
-    endIndex = startIndex + size
-
-    trainingData = data[startIndex: endIndex]
-    testingData = pd.concat([data[:startIndex], data[endIndex:]], axis=0)
+    dataCopy = data
+    testingData = dataCopy.sample(frac = percent/100)
+    dataCopy.drop(testingData.index)
+    trainingData = dataCopy.sample(frac = (100 - percent)/100)
     return trainingData, testingData
+
+
+
 
 
 
@@ -229,6 +230,8 @@ counter = 0
 for i in range(0,5):
     tree = Node()
     trainData, testData = getTestandTrainingData(data, 25)
+    # print(trainData)
+    # print(testData)
     
     tree = build_tree(trainData, 'vote_result')
     
