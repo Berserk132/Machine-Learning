@@ -26,34 +26,6 @@ data.head()
 
 
 
-
-# In[83]:
-
-
-#for index, row in data.iterrows():
-#    rowData = np.array(row)
-#    y_count = 0
-#    n_count = 0
-#    mark_index = []
-#    
-#    for i in range(len(rowData)):
-#        if rowData[i] == 'y':
-#            y_count += 1
-#        elif rowData[i] == 'n':
-#            n_count += 1
-#        elif rowData[i] == '?':
-#            mark_index.append(i)
-#    
-#    for i in mark_index:
-#        if y_count >= n_count:
-#            rowData[i] = 'y'
-#        else:
-#            rowData[i] = 'n'
-#            
-#    data.loc[index] = rowData
-
-
-
 # In[85]:
 def getTestandTrainingData(data, percent):
     dataCopy = data
@@ -61,10 +33,6 @@ def getTestandTrainingData(data, percent):
     dataCopy.drop(testingData.index)
     trainingData = dataCopy.sample(frac = (100 - percent)/100)
     return trainingData, testingData
-
-
-
-
 
 
 
