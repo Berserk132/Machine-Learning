@@ -72,7 +72,7 @@ for i in range(1,14):
 names=["","age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal"]
 
 alphas=[3,1,0.1,0.01,0.001]
-itr=100
+itr=1000
 lam=1/itr
 bestAcc=0
 bestFeat1=[]
@@ -98,7 +98,7 @@ for i in range(1,len(names)):
             feat2=trainFeature.iloc[:,j-1:j]
             newFeat=np.concatenate((feat1,feat2),axis=1)
             w,b=gradiantDescent(alpha,w,newFeat,b,y,itr,lam)
-            #ans = max(acc(w,b,newFeat,trainY),ans)
+            ans = max(acc(w,b,newFeat,trainY),ans)
             accuracy = acc(w,b,newFeat,y)
             arrays.append(info(names[i],names[j],accuracy,w,b))
             if(accuracy> bestAcc):
@@ -120,6 +120,5 @@ print("best accuracy " ,bestAcc, " best features" , names[bestFeat1] ," and ",
 newFeat = np.concatenate((testFeature.iloc[:,bestFeat1-1:bestFeat1],
                           testFeature.iloc[:,bestFeat2-1:bestFeat2]), axis=1)
 
-ans = acc(bestW,bestB,newFeat,trainY)
 print("ans = " , ans)
 
