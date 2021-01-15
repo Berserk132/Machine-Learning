@@ -1,5 +1,3 @@
-# To add a new cell, type '# %%'
-# To add a new markdown cell, type '# %% [markdown]'
 # %%
 import numpy as np
 from tensorflow import keras
@@ -40,16 +38,67 @@ plt.show()
 
 
 # %%
-train_labels_one_hot = to_categorical(train_labels)
-test_labels_one_hot = to_categorical(test_labels)
+train_labels_cat = to_categorical(train_labels)
+test_labels_cat = to_categorical(test_labels)
+
 
 
 # %%
-train_labels_one_hot[0]
-
+# Reshape the images.
+train_images = np.expand_dims(train_images, axis=3)
+test_images = np.expand_dims(test_images, axis=3)
 
 # %%
+num_filters = 8
+filter_size = 3
+pool_size = 2
 
+model = Sequential([
+    Conv2D(32, (3,3), padding='same', activation='relu', input_shape=(28, 28, 1)),
+    Conv2D(32, (3, 3), activation='relu'),
+    MaxPooling2D(pool_size=(2,2)),
+    Dropout(0.25),
 
+    Conv2D(64, (3,3), padding='same', activation='relu'),
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D(pool_size=(2,2)),
+    Dropout(0.25),
 
+    Flatten(),
+    Dense(10, activation='softmax'),
+])
 
+# %%
+model.compile(
+  'adam',
+  loss='categorical_crossentropy',
+  metrics=['accuracy'],
+)
+
+# %%
+# Train the model.
+model.fit(
+  train_images,
+  train_labels_cat,
+  epochs=3,
+  validation_data=(test_images, test_labels_cat),
+)
+# %%
+# Predict on the first 5 test images.
+predictions = model.predict(test_images[:6])
+
+# Print our model's predictions.
+print(np.argmax(predictions, axis=1)) # [7, 2, 1, 0, 4]
+
+# Check our predictions against the ground truths.
+print(test_labels[:6]) # [7, 2, 1, 0, 4]
+
+rows = 3
+columns = 3
+for i in range(1, rows * columns + 1):
+    plt.subplot(rows,columns,i)
+    plt.imshow(test_images[i - 1], cmap='gray')
+
+plt.show()
+
+# %%
